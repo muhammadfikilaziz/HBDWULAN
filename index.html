@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday Wulan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #050505;
+            color: #ffffff;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background: rgba(0, 0, 0, 0.85);
+        }
+        canvas {
+            display: block;
+        }
+        .glass {
+            background: rgba(20, 20, 20, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="relative w-screen h-screen flex items-center justify-center">
+
+    <!-- Audio Background (Opsional, bisa diisi link lagu romantis format .mp3) -->
+    <audio id="bgMusic" loop>
+        <source src="" type="audio/mp3">
+    </audio>
+
+    <!-- Canvas Efek Matrix -->
+    <div class="matrix-bg" id="screenMatrix">
+        <canvas id="matrixCanvas"></canvas>
+        <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 z-10 cursor-pointer">
+            <div id="matrixText" class="text-xl md:text-3xl font-semibold tracking-widest text-red-500 animate-pulse drop-shadow-[0_0_15px_rgba(239,68,68,0.7)]">
+                [ SENTUH LAYAR INI ]
+            </div>
+        </div>
+    </div>
+
+    <!-- Layar Kartu Ucapan -->
+    <div id="screenCard" class="hidden absolute z-20 w-11/12 max-w-md p-6 rounded-2xl glass shadow-2xl text-center transform transition-all duration-700">
+        <div class="relative w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden border-2 border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.5)]">
+            <!-- GANTI LINK FOTO UTAMA DI BAWAH INI -->
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1000&auto=format&fit=crop" alt="Wulan" class="w-full h-full object-cover">
+        </div>
+        <h2 class="text-2xl font-bold text-red-400 mb-2">Untuk Wulan Tercinta ❤️</h2>
+        <p class="text-gray-300 text-sm leading-relaxed mb-6">
+            Selamat ulang tahun ya! Semoga hari-harimu selalu dikelilingi kebahagiaan, kesehatan, dan semua impianmu tercapai. Tetap jadi pribadi yang luar biasa ya.
+        </p>
+        <button id="giftBox" class="w-full py-3 bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 font-semibold rounded-xl shadow-lg transition-transform active:scale-95">
+            Buka Kejutan Spesial 🎁
+        </button>
+    </div>
+
+    <!-- Layar Galeri Foto -->
+    <div id="screenGallery" class="hidden absolute z-20 w-11/12 max-w-md p-6 rounded-2xl glass shadow-2xl text-center">
+        <h3 class="text-xl font-bold text-red-400 mb-4">Galeri Kenangan Kita ✨</h3>
+        <div class="grid grid-cols-2 gap-3 mb-6">
+            <div class="h-36 rounded-xl overflow-hidden border border-white/10">
+                <!-- GANTI LINK FOTO GALERI 1 -->
+                <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=600&auto=format&fit=crop" class="w-full h-full object-cover hover:scale-110 transition-transform duration-500">
+            </div>
+            <div class="h-36 rounded-xl overflow-hidden border border-white/10">
+                <!-- GANTI LINK FOTO GALERI 2 -->
+                <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=600&auto=format&fit=crop" class="w-full h-full object-cover hover:scale-110 transition-transform duration-500">
+            </div>
+            <div class="h-36 rounded-xl overflow-hidden border border-white/10">
+                <!-- GANTI LINK FOTO GALERI 3 -->
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=600&auto=format&fit=crop" class="w-full h-full object-cover hover:scale-110 transition-transform duration-500">
+            </div>
+            <div class="h-36 rounded-xl overflow-hidden border border-white/10">
+                <!-- GANTI LINK FOTO GALERI 4 -->
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop" class="w-full h-full object-cover hover:scale-110 transition-transform duration-500">
+            </div>
+        </div>
+        <p class="text-xs text-gray-400">Happy Birthday, Wulan! 💖</p>
+    </div>
+
+    <!-- Script Animasi Matrix & Interaksi -->
+    <script>
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const characters = "WULANCINTAKASIHAYANGHAPPYBIRTHDAY0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const fontSize = 16;
+        let columns = canvas.width / fontSize;
+        let drops = [];
+        for (let x = 0; x < columns; x++) {
+            drops[x] = 1;
+        }
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#ef4444'; // Warna merah matrix
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                let text = characters.charAt(Math.floor(Math.random() * characters.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+        let matrixInterval = setInterval(drawMatrix, 33);
+
+        // Logika Alur Interaksi Tombol & Layar
+        const screenMatrix = document.getElementById('screenMatrix');
+        const matrixText = document.getElementById('matrixText');
+        const screenCard = document.getElementById('screenCard');
+        const giftBox = document.getElementById('giftBox');
+        const screenGallery = document.getElementById('screenGallery');
+        const bgMusic = document.getElementById('bgMusic');
+
+        let step = 0;
+
+        screenMatrix.addEventListener('click', () => {
+            bgMusic.play().catch(e => console.log("Audio autoplay blocked"));
+
+            if (step === 0) {
+                step = 1;
+                matrixText.innerText = "3...";
+                setTimeout(() => { matrixText.innerText = "2..."; }, 1000);
+                setTimeout(() => { matrixText.innerText = "1..."; }, 2000);
+                setTimeout(() => {
+                    matrixText.innerText = "HAPPY BIRTHDAY WULAN ❤️";
+                    matrixText.classList.add('text-3xl');
+                }, 3000);
+                setTimeout(() => {
+                    screenMatrix.classList.add('hidden');
+                    screenCard.classList.remove('hidden');
+                }, 4500);
+            }
+        });
+
+        giftBox.addEventListener('click', () => {
+            screenCard.classList.add('hidden');
+            screenGallery.classList.remove('hidden');
+        });
+    </script>
+</body>
+</html>
